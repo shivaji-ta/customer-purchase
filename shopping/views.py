@@ -9,6 +9,7 @@ from .models import Cart, OrderModel, OrderDetailsModel
 from .serializers import CartSerializer, OrderSerializer, OrderDetailsSerializer
 
 
+
 class CartView(APIView):
     def get_product(self, id):
         try:
@@ -185,3 +186,12 @@ class PlaceOrderView(APIView):
         return Response(
             {"order_details": ord_serializer.data, "products": prod_serializer.data}
         )
+
+
+class OrderDetailsView(APIView):
+    def get(self, request, order_id):
+        items = OrderDetailsModel.objects.filter(order_id=order_id)
+        if items.count() < 1:
+            return Response({'error':'No orders found for this ID'},status=status.HTTP_404_NOT_FOUND)
+        serializer = OrderDetailsSerializer(items,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
