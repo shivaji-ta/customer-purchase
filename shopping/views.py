@@ -165,17 +165,21 @@ class PlaceOrderView(APIView):
             discount=discount,
             discount_code=code,
         )
+        order_details = []
         for item in items:
-            OrderDetailsModel.objects.create(
-                product_name=item.product.name,
-                product_desc=item.product.description,
-                product_price=item.product.price,
-                product_quantity=item.quantity,
-                product_amount=item.product.price * item.quantity,
-                order_id=order.order_id,
+            order_details.append(
+                OrderDetailsModel(
+                    product_name=item.product.name,
+                    product_desc=item.product.description,
+                    product_price=item.product.price,
+                    product_quantity=item.quantity,
+                    product_amount=item.product.price * item.quantity,
+                    order_id=order.order_id,
+                )
             )
             item.delete()
-        products = OrderDetailsModel.objects.filter(order_id=order.order_id)
+        OrderDetailsModel.objects.bulk_create(order_details)
+        products = order_details
         ord_serializer = OrderSerializer(order)
         prod_serializer = OrderDetailsSerializer(products, many=True)
         return Response(
